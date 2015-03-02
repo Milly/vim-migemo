@@ -17,21 +17,32 @@ endif
 let s:save_cpo = &cpo
 set cpo&vim
 
-let g:migemodict = get(g:, 'migemodict', '')
+command! -nargs=* Migemo call migemo#search_word(<q-args>, '')
+
+nnoremap <Plug>(migemo-searchchar) :call migemo#search_char('')<CR>
+nnoremap <Plug>(migemo-searchchar-reverse) :call migemo#search_char('b')<CR>
 
 if has('migemo')
-  call migemo#init()
-  nnoremap <silent> <Plug>(migemo-searchchar) :call migemo#SearchChar(0)<CR>
-  if !hasmapto('<Plug>(migemo-searchchar)') && empty(maparg('<Leader>f', 'n'))
-    nmap <silent> <Leader>f <Plug>(migemo-searchchar)
-  endif
+  nnoremap <Plug>(migemo-migemosearch) :call migemo#init() \| call feedkeys('g/', 'n')<CR>
+  nnoremap <Plug>(migemo-migemosearch-reverse) :call migemo#init() \| call feedkeys('g?', 'n')<CR>
 else
-  command! -nargs=* Migemo call migemo#MigemoSearch(<q-args>)
-  nnoremap <silent> <Plug>(migemo-migemosearch) :call migemo#MigemoSearch('')<CR>
-  if !hasmapto('<Plug>(migemo-migemosearch)') && empty(maparg('<Leader>mi', 'n'))
-    nmap <silent> <Leader>mi <Plug>(migemo-migemosearch)
-  endif
+  nnoremap <Plug>(migemo-migemosearch) :call migemo#search_word('', '')<CR>
+  nnoremap <Plug>(migemo-migemosearch-reverse) :call migemo#search_word('', 'b')<CR>
 endi
+
+if !hasmapto('<Plug>(migemo-searchchar)') && empty(maparg('<Leader>f', 'n'))
+  nmap <Leader>f <Plug>(migemo-searchchar)
+endif
+if !hasmapto('<Plug>(migemo-searchchar-reverse)') && empty(maparg('<Leader>F', 'n'))
+  nmap <Leader>F <Plug>(migemo-searchchar-reverse)
+endif
+
+if !hasmapto('<Plug>(migemo-migemosearch)') && maparg('g/', 'n') == ""
+  nmap g/ <Plug>(migemo-migemosearch)
+endif
+if !hasmapto('<Plug>(migemo-migemosearch-reverse)') && maparg('g?', 'n') == ""
+  nmap g? <Plug>(migemo-migemosearch-reverse)
+endif
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

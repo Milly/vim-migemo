@@ -73,48 +73,55 @@ if has('migemo')
     if &migemodict == '' || !filereadable(&migemodict)
       let &migemodict = s:SearchDict()
     endif
+    nnoremap <Plug>(migemo-migemosearch) g/
+    nnoremap <Plug>(migemo-migemosearch-reverse) g?
   endfunction
 
-  function! migemo#SearchChar(dir)
+  function! migemo#get_vim_pattern(pattern)
     call migemo#init()
-    let input = nr2char(getchar())
-    let pat = migemo(input)
-    call search('\%(\%#.\{-\}\)\@<='.pat)
-    noh
+    return migemo(a:pattern)
   endfunction
 else
+  " non-builtin version
   function! migemo#init()
-    if executable('cmigemo')
+    if ! executable('cmigemo')
       echoerr 'cmigemo is not installed'
     endif
-    if g:migemodict ==# ''
+    if get(g:, 'migemodict', '') ==# ''
       let g:migemodict = s:SearchDict()
     endif
   endfunction
 
-  " non-builtin version
-  function! migemo#MigemoSearch(word)
+  function! migemo#get_vim_pattern(pattern)
     call migemo#init()
-
-    let retval = a:word != '' ? a:word : input('MIGEMO:')
-    if retval == ''
-      return
-    endif
-    let retval =  migemo#system('cmigemo -v -w "'.retval.'" -d "'.g:migemodict.'"')
-    if retval == ''
-      return
-    endif
-
-    let @/ = retval
-    let v:errmsg = ''
-    silent! normal! n
-    if v:errmsg != ''
-      echohl ErrorMsg
-      echo v:errmsg
-      echohl None
-    endif
+    return migemo#system('cmigemo -v -w '.shellescape(a:pattern).' -d '.shellescape(g:migemodict))
   endfunction
 endif
+
+function! migemo#search_char(flags)
+  let input = nr2char(getchar())
+  let pat = migemo#get_vim_pattern(input)
+  call search(pat, a:flags, line('.'))
+  noh
+endfunction
+
+function! migemo#search_word(word, flags)
+  let pattern = a:word != '' ? a:word : input('MIGEMO:')
+  if pattern == ''
+    return
+  endif
+  let pattern = migemo#get_vim_pattern(pattern)
+  if pattern == ''
+    return
+  endif
+
+  let @/ = pattern
+  if string(a:flags) !~? 'b'
+    call feedkeys("/\<CR>", 'n')
+  else
+    call feedkeys("?\<CR>", 'n')
+  endif
+endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
