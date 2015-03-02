@@ -6,7 +6,7 @@
 " Maintainer:   haya14busa <hayabusa1419@gmail.com>
 " Original:     MURAOKA Taro <koron.kaoriya@gmail.com>
 " Contributors: Yasuhiro Matsumoto <mattn_jp@hotmail.com>
-" Last Change: 23 Dec 2013.
+" Last Change: 03 Mar 2015
 
 " Japanese Description:
 
@@ -20,6 +20,7 @@ set cpo&vim
 let g:migemodict = get(g:, 'migemodict', '')
 
 if has('migemo')
+  call migemo#init()
   nnoremap <silent> <Plug>(migemo-searchchar) :call migemo#SearchChar(0)<CR>
   if !hasmapto('<Plug>(migemo-searchchar)') && empty(maparg('<Leader>f', 'n'))
     nmap <silent> <Leader>f <Plug>(migemo-searchchar)

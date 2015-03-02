@@ -6,7 +6,7 @@
 " Maintainer:   haya14busa <hayabusa1419@gmail.com>
 " Original:     MURAOKA Taro <koron.kaoriya@gmail.com>
 " Contributors: Yasuhiro Matsumoto <mattn_jp@hotmail.com>
-" Last Change: 23 Dec 2013.
+" Last Change: 03 Mar 2015
 
 let s:save_cpo = &cpo
 set cpo&vim
@@ -69,30 +69,32 @@ function! s:SearchDict()
 endfunction
 
 if has('migemo')
-  if &migemodict == '' || !filereadable(&migemodict)
-    let &migemodict = s:SearchDict()
-  endif
+  function! migemo#init()
+    if &migemodict == '' || !filereadable(&migemodict)
+      let &migemodict = s:SearchDict()
+    endif
+  endfunction
 
-  " eXg
   function! migemo#SearchChar(dir)
+    call migemo#init()
     let input = nr2char(getchar())
     let pat = migemo(input)
     call search('\%(\%#.\{-\}\)\@<='.pat)
     noh
   endfunction
 else
-  " non-builtin version
-  if g:migemodict ==# ''
-    let g:migemodict = s:SearchDict()
-  endif
-
-  function! migemo#MigemoSearch(word)
-    if executable('cmigemo') == ''
-      echohl ErrorMsg
-      echo 'Error: cmigemo is not installed'
-      echohl None
-      return
+  function! migemo#init()
+    if executable('cmigemo')
+      echoerr 'cmigemo is not installed'
     endif
+    if g:migemodict ==# ''
+      let g:migemodict = s:SearchDict()
+    endif
+  endfunction
+
+  " non-builtin version
+  function! migemo#MigemoSearch(word)
+    call migemo#init()
 
     let retval = a:word != '' ? a:word : input('MIGEMO:')
     if retval == ''
